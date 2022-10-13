@@ -1,13 +1,12 @@
 import abi from '../utils/BuyMeACoffee.json';
 import { ethers } from "ethers";
 import Head from 'next/head'
-import Image from 'next/image'
 import React, { useEffect, useState } from "react";
 import styles from '../styles/Home.module.css'
 
 export default function Home() {
   // Contract Address & ABI
-  const contractAddress = "0xfe05d63C5B8E7FafB4cCe1Ab47b9061b33410714";
+  const contractAddress = "0xd1eF9e6381bb06E6F6280fc54E806656617A051d";
   const contractABI = abi.abi;
 
   // Component state
@@ -29,7 +28,7 @@ export default function Home() {
     try {
       const { ethereum } = window;
 
-      const accounts = await ethereum.request({method: 'eth_accounts'})
+      const accounts = await ethereum.request({ method: 'eth_accounts' })
       console.log("accounts: ", accounts);
 
       if (accounts.length > 0) {
@@ -45,7 +44,7 @@ export default function Home() {
 
   const connectWallet = async () => {
     try {
-      const {ethereum} = window;
+      const { ethereum } = window;
 
       if (!ethereum) {
         console.log("please install MetaMask");
@@ -61,9 +60,9 @@ export default function Home() {
     }
   }
 
-  const buyCoffee = async () => {
+  const buyCoffee = async (amount) => {
     try {
-      const {ethereum} = window;
+      const { ethereum } = window;
 
       if (ethereum) {
         const provider = new ethers.providers.Web3Provider(ethereum, "any");
@@ -75,10 +74,11 @@ export default function Home() {
         );
 
         console.log("buying coffee..")
+        const amountToSend = ethers.utils.parseEther(amount);
         const coffeeTxn = await buyMeACoffee.buyCoffee(
           name ? name : "anon",
           message ? message : "Enjoy your coffee!",
-          {value: ethers.utils.parseEther("0.001")}
+          { value: amountToSend }
         );
 
         await coffeeTxn.wait();
@@ -108,7 +108,7 @@ export default function Home() {
           contractABI,
           signer
         );
-        
+
         console.log("fetching memos from the blockchain..");
         const memos = await buyMeACoffee.getMemos();
         console.log("fetched!");
@@ -116,12 +116,16 @@ export default function Home() {
       } else {
         console.log("Metamask is not connected");
       }
-      
+
     } catch (error) {
       console.log(error);
     }
   };
-  
+
+  const withdrawTips = async () => {
+
+  }
+
   useEffect(() => {
     let buyMeACoffee;
     isWalletConnected();
@@ -129,20 +133,21 @@ export default function Home() {
 
     // Create an event handler function for when someone sends
     // us a new memo.
-    const onNewMemo = (from, timestamp, name, message) => {
-      console.log("Memo received: ", from, timestamp, name, message);
+    const onNewMemo = (from, timestamp, name, message, amount) => {
+      console.log("Memo received: ", from, timestamp, name, message, amount);
       setMemos((prevState) => [
         ...prevState,
         {
           address: from,
-          timestamp: new Date(timestamp * 1000),
+          timestamp,
           message,
-          name
+          name,
+          amount
         }
       ]);
     };
 
-    const {ethereum} = window;
+    const { ethereum } = window;
 
     // Listen for new memo events.
     if (ethereum) {
@@ -163,87 +168,113 @@ export default function Home() {
       }
     }
   }, []);
-  
+
   return (
     <div className={styles.container}>
-      <Head>
-        <title>Buy Albert a Coffee!</title>
-        <meta name="description" content="Tipping site" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+      <div className={'container-fluid'}>
+        <Head>
+          <title>Buy Wally a Coffee!</title>
+          <meta name="description" content="Tipping site" />
+          <link rel="icon" href="/favicon.ico" />
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Buy Albert a Coffee!
+        </Head>
+
+        <main className={styles.main}>
+          <h1 className={styles.title}>
+            Buy Wally a Coffee!
         </h1>
-        
-        {currentAccount ? (
-          <div>
-            <form>
-              <div>
-                <label>
-                  Name
-                </label>
-                <br/>
-                
-                <input
-                  id="name"
-                  type="text"
-                  placeholder="anon"
-                  onChange={onNameChange}
+
+          {currentAccount ? (
+            <div>
+              <form>
+                <div className={styles.buttonContainer}>
+                  <label>
+                    Name
+                  </label>
+                  <br />
+
+                  <input
+                    id="name"
+                    type="text"
+                    placeholder="anon"
+                    className={styles.fullWidth}
+                    onChange={onNameChange}
                   />
-              </div>
-              <br/>
-              <div>
-                <label>
-                  Send Albert a message
+                </div>
+                <div className={styles.buttonContainer}>
+                  <label>
+                    Send Wally a message
                 </label>
-                <br/>
+                  <br />
 
-                <textarea
-                  rows={3}
-                  placeholder="Enjoy your coffee!"
-                  id="message"
-                  onChange={onMessageChange}
-                  required
-                >
-                </textarea>
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={buyCoffee}
-                >
-                  Send 1 Coffee for 0.001ETH
+                  <textarea
+                    rows={3}
+                    placeholder="Enjoy your coffee!"
+                    id="message"
+                    onChange={onMessageChange}
+                    required
+                    className={styles.fullWidth}
+                  >
+                  </textarea>
+                </div>
+                <div className={styles.buttonContainer}>
+                  <button
+                    type="button"
+                    onClick={() => buyCoffee("0.001")}
+                    className='btn btn-success'
+                  >
+                    Send 1 Coffee for 0.001ETH
                 </button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <button onClick={connectWallet}> Connect your wallet </button>
-        )}
-      </main>
+                </div>
+                <div className={styles.buttonContainer}>
+                  <button
+                    type="button"
+                    onClick={() => buyCoffee("0.003")}
+                    className='btn btn-info'
+                  >
+                    Send 1 Large Coffee for 0.003ETH
+                </button>
+                </div>
+                <div className={styles.buttonContainer}>
+                  <button
+                    type="button"
+                    onClick={() => withdrawTips}
+                    className='btn btn-secondary'
+                  >
+                    Withdraw tips
+                </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+              <button onClick={connectWallet} className='btn btn-warning'> Connect your wallet </button>
+            )}
+        </main>
 
-      {currentAccount && (<h1>Memos received</h1>)}
+        {currentAccount && (<h1>Memos received</h1>)}
 
-      {currentAccount && (memos.map((memo, idx) => {
-        return (
-          <div key={idx} style={{border:"2px solid", "borderRadius":"5px", padding: "5px", margin: "5px"}}>
-            <p style={{"fontWeight":"bold"}}>"{memo.message}"</p>
-            <p>From: {memo.name} at {memo.timestamp.toString()}</p>
-          </div>
-        )
-      }))}
+        {currentAccount && (memos.map((memo, idx) => {
+          const timestamp = new Date(memo.timestamp * 1000);
+          const timestampDisplay = timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString();
+          return (
+            <div key={idx} style={{ border: "2px solid", "borderRadius": "5px", padding: "5px", margin: "5px" }}>
+              <p style={{ "fontWeight": "bold" }}>"{memo.message}"</p>
+              <p>From: {memo.name} at {timestampDisplay}</p>
+              <p>Amount: {memo.amount.toNumber() / Math.pow(10, 18)} ETH</p>
+            </div>
+          )
+        }))}
 
-      <footer className={styles.footer}>
-        <a
-          href="https://alchemy.com/?a=roadtoweb3weektwo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Created by @traderwally7 for Alchemy's Road to Web3 lesson two!
+        <footer className={styles.footer}>
+          <a
+            href="https://alchemy.com/?a=roadtoweb3weektwo"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Created by @traderwally7 for Alchemy's Road to Web3 lesson two!
         </a>
-      </footer>
+        </footer>
+      </div>
     </div>
   )
 }

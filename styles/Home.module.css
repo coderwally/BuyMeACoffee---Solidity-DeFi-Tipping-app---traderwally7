@@ -52,6 +52,7 @@
 .title,
 .description {
   text-align: center;
+  padding-bottom: 1.5rem;
 }
 
 .description {
@@ -117,4 +118,17 @@
     width: 100%;
     flex-direction: column;
   }
+}
+
+.buttonContainer {
+  width:25rem;
+  padding:0.8rem 0;
+}
+
+.buttonContainer button {
+  width:100%;
+}
+
+.fullWidth {
+  width:100%;
 }
